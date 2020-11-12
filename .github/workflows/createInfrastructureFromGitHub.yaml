@@ -1,8 +1,8 @@
-name: Build and push to Dockerhub
+name: Build infrastructure
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -20,8 +20,7 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           STATE_BLOBACCESSKEY: ${{ secrets.STATE_BLOBACCESSKEY }}
-          TF_VAR_STORAGE_ACCOUNT_NAME: "tcshowcasecommonstorage"
-          TF_VAR_SUBSCRIPTION_NAME: "Practice-Area-TC-Dev"
-          TF_VAR_environment: "prod"
-          TF_ACTION: "plan"
-        run: createInfrastructure.sh
+          TF_VAR_storage_account_name: 'tcshowcasecommonstorage'
+          TF_VAR_environment: 'prod'
+          TF_ACTION: 'plan'
+        run: ./createInfrastructure.sh
