@@ -1,0 +1,27 @@
+name: Build and push to Dockerhub
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Run Terraform
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          STATE_BLOBACCESSKEY: ${{ secrets.STATE_BLOBACCESSKEY }}
+          TF_VAR_STORAGE_ACCOUNT_NAME: "tcshowcasecommonstorage"
+          TF_VAR_SUBSCRIPTION_NAME: "Practice-Area-TC-Dev"
+          TF_VAR_environment: "prod"
+          TF_ACTION: "plan"
+        run: createInfrastructure.sh
