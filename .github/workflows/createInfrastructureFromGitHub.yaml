@@ -1,8 +1,14 @@
 name: Build infrastructure
 
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      tfAction:
+        description: Terraform Action
+        required: true
+        default: plan
+#  push:
+#    branches: [ main ]
 
 jobs:
   build:
@@ -22,5 +28,5 @@ jobs:
           STATE_BLOBACCESSKEY: ${{ secrets.STATE_BLOBACCESSKEY }}
           TF_VAR_storage_account_name: 'tcshowcasecommonstorage'
           TF_VAR_environment: 'prod'
-          TF_ACTION: 'destroy'
+          TF_ACTION: ${{ github.event.inputs.tfAction }}
         run: ./createInfrastructure.sh
