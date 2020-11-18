@@ -33,11 +33,20 @@ jobs:
         pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
         dotnet build --configuration Release --output ./output
         popd
+    - name: 'Login using Azure Service Principal'
+      uses: Azure/login@v1
+      with: 
+        creds: >-
+          {
+            "clientId":"${{ secrets.ARM_CLIENT_ID }}",
+            "clientSecret" : "${{ secrets.ARM_CLIENT_SECRET }}",
+            "subscriptionId": "${{ secrets.ARM_SUBSCRIPTION_ID }}",
+            "tenantId":"${{ secrets.ARM_TENANT_ID }}" 
+          }
     - name: 'Run Azure Functions Action'
       uses: Azure/functions-action@v1
       id: fa
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
         package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
-        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} 
 
