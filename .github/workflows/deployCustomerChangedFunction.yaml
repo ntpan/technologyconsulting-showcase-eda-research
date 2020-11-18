@@ -11,7 +11,7 @@ on:
 #
 # 2. Change these variables for your configuration:
 env:
-  AZURE_FUNCTIONAPP_NAME: CustomerChanged  # set this to your application's name
+  AZURE_FUNCTIONAPP_NAME: tc-eda-iac-prod-function-customer-producer  # set this to your application's name
   AZURE_FUNCTIONAPP_PACKAGE_PATH: './functions/CustomerChanged'    # set this to the path to your web app project, defaults to the repository root
   DOTNET_VERSION: '3.1.301'              # set this to the dotnet version to use
 
