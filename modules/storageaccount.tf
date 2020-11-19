@@ -12,3 +12,9 @@ resource "azurerm_storage_container" "storage_container_eventhub" {
     storage_account_name = azurerm_storage_account.storage_account.name
     container_access_type = "private"
 }
+
+resource "azurerm_key_vault_secret" "eventhub_storage_account_key" {
+    name = "EVENTHUBSTORAGEACCOUNTNAMEACCESSKEY"
+    value = azurerm_storage_account.storage_account.primary_access_key
+    key_vault_id = azurerm_key_vault.key_vault.id
+}

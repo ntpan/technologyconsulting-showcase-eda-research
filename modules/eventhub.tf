@@ -12,6 +12,18 @@ resource "azurerm_eventhub" "eventhub_customer_adress_changed" {
     resource_group_name = azurerm_resource_group.resourceGroup.name
     partition_count = 2 
     message_retention = 1
+
+    capture_description {
+      enabled = true
+      encoding = "Avro"
+
+        destination {
+            name = "EventHubArchive.AzureBlockBlob"
+            archive_name_format = "{Namespace}/{EventHub}/{PartitionId}/{Year}-{Month}-{Day}T{Hour}:{Minute}:{Second}"
+            blob_container_name = azurerm_storage_container.storage_container_eventhub.name
+            storage_account_id  = azurerm_storage_account.storage_account.id
+        }
+    }
 }
 
 resource "azurerm_eventhub_authorization_rule" "eventhub_customer_adress_changed_shared_access_policy" {
