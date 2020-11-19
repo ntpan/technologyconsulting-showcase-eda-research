@@ -22,6 +22,11 @@ resource "azurerm_function_app" "customer_function_producer" {
     identity {
         type = "SystemAssigned"
     }
+
+    app_settings = {
+        EVENT_HUB_NAME = azurerm_eventhub.eventhub_customer_adress_changed.name
+        CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.eventhub_customer_adress_changed_sas_connectionstring.id})"
+    }
 }
 
 resource "azurerm_function_app" "customer_function_consumer" {
@@ -35,5 +40,10 @@ resource "azurerm_function_app" "customer_function_consumer" {
 
     identity {
         type = "SystemAssigned"
+    }
+
+        app_settings = {
+        EVENT_HUB_NAME = azurerm_eventhub.eventhub_customer_adress_changed.name
+        CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.eventhub_customer_adress_changed_sas_connectionstring.id})"
     }
 }
