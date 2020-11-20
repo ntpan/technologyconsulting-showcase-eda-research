@@ -3,10 +3,22 @@ name: Deploy Container CustomerChangedConsumer
 on:
   workflow_dispatch
 
+env:
+  KEY_VAULT_NAME: tcedaiacvaultprod
+  EVENT_HUB_NAME: customerchanged
+  EVENT_HUB_STORAGEACCOUNT_NAME: tcedaiacstorageprod
+  EVENT_HUB_CONSUMER_GROUP: $default
+  CONTAINER_REGISTRY: 'nttcshowcase.azurecr.io'
+  IMAGE_REPOSITORY: 'customerchanged'
+  CONTAINER_IMAGE_TAG: 'latest'
+  DOCKERFILE_PATH: .
+  APP_NAME: tc-eda-iac-prod-customer-consumer
+
 jobs:
-  build:
+  setup: 
+    name: Setup job
     runs-on: ubuntu-latest
-    steps:
+    steps: 
       - name: 'Login using Azure Service Principal'
         uses: Azure/login@v1
         with: 
@@ -17,18 +29,32 @@ jobs:
               "subscriptionId": "${{ secrets.ARM_SUBSCRIPTION_ID }}",
               "tenantId":"${{ secrets.ARM_TENANT_ID }}" 
             }
+
       - name: Get Keyvault Secrets 
         uses: Azure/get-keyvault-secrets@v1.0
         with:
-          keyvault: "myKeyVault"
-          secrets: 'mySecret1, mySecret2'
+          keyvault: ${{ env.KEYVAULTNAME }}
+          secrets: 'EVENTHUBSTORAGEACCOUNTNAMEACCESSKEY, eventhub-customer-adress-changed-sas-connectionstring'
         id: myGetSecretAction
 
+      - name: Checkout Code 
+        uses: actions/checkout@v2
+  build: 
+    name: Build Job
+    needs: setup
+    runs-on: ubuntu-latest
+    steps: 
+      - name: test
+  deploy: 
+    name: Deploy job
+    needs: [setup, build]
+    runs-on: ubuntu-latest
+    steps: 
       - name: Deploy to Azure Container Instancess
         uses: Azure/aci-deploy@v1
         with:
           # Name of the Resource Group in which the Container Instance will be created
-          resource-group: 
+          resource-group: ${{ env.RESOURCE_GROUP }}
           # The command line to run when the container is started, e.g. "/bin/bash -c myscript.sh"
           command-line: # optional, default is 
           # The DNS Name Label for Container with Public IP
