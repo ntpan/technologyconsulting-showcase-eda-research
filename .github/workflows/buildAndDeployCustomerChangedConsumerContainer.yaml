@@ -12,7 +12,7 @@ env:
   CONTAINER_REGISTRY: 'nttcshowcase.azurecr.io'
   IMAGE_REPOSITORY: 'edaiaccustomerchanged'
   CONTAINER_IMAGE_TAG: 'latest'
-  DOCKERFILE_PATH: .
+  DOCKERFILE_PATH: ./container/customerConsumer/
   APP_NAME: tc-eda-iac-prod-customer-consumer
   LOCATION: 'westeurope'
   
@@ -20,6 +20,12 @@ jobs:
   setup: 
     name: Setup job
     runs-on: ubuntu-latest
+    # Making secrets available for all jobs via outputs
+    outputs:
+      EVENTHUBSTORAGEACCOUNTACCESSKEY: ${{ steps.eventHubSecrets.outputs.EVENTHUBSTORAGEACCOUNTACCESSKEY}}
+      EVENTHUB-CUSTOMER--changed-sas-connectionstring: ${{ steps.eventHubSecrets.outputs.EVENTHUBCUSTOMERCHANGEDSASCONNECTIONSTRING}}
+      ACRUSER: ${{ steps.acrSecrets.outputs.ACRUSER }}
+      ACRPW: ${{ steps.acrSecrets.outputs.ACRPW }}
     steps: 
       - name: 'Login using Azure Service Principal'
         uses: Azure/login@v1
@@ -36,7 +42,7 @@ jobs:
         uses: Azure/get-keyvault-secrets@v1
         with:
           keyvault: ${{ env.KEY_VAULT_NAME }}
-          secrets: 'EVENTHUBSTORAGEACCOUNTACCESSKEY, eventhub-customer-adress-changed-sas-connectionstring'
+          secrets: 'EVENTHUBSTORAGEACCOUNTACCESSKEY, EVENTHUBCUSTOMERCHANGEDSASCONNECTIONSTRING'
         id: eventHubSecrets
 
       - name: Get Key Vault Secrets (Container Registry)
@@ -58,8 +64,8 @@ jobs:
         uses: azure/docker-login@v1
         with: 
           login-server: ${{ secrets.ACR_LOGIN_SERVER }}
-          username: ${{ steps.acrSecrets.outputs.ACRUSER }}
-          password: ${{ steps.acrSecrets.outputs.ACRPW }}
+          username: ${{ needs.setup.outputs.ACRUSER }}
+          password: ${{ needs.setup.outputs.ACRPW }}
 
       - run: |
           docker build . -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
@@ -82,9 +88,9 @@ jobs:
           # List of environment variables for the container. Space-seperated in "key=value" format
           environment-variables: |
             SPRING_PROFILES_ACTIVE=prod
-            EVENTHUBCONNECTIONSTRING=${{ steps.eventHubSecrets.outputs.eventhub-customer-adress-changed-sas-connectionstring }}
+            EVENTHUBCONNECTIONSTRING=${{ needs.setup.outputs.EVENTHUBCUSTOMERCHANGEDSASCONNECTIONSTRING }}
             EVENTHUBSTORAGEACCOUNTNAME=tcedaiacstorageprod
-            EVENTHUBSTORAGEACCOUNTACCESSKEY=${{ steps.eventHubSecrets.outputs.EVENTHUBSTORAGEACCOUNTACCESSKEY }}
+            EVENTHUBSTORAGEACCOUNTACCESSKEY=${{ needs.setup.outputs.EVENTHUBSTORAGEACCOUNTACCESSKEY }}
             EVENTHUBNAME=customerchanged
             EVENTHUBCONSUMERGROUP=$Default
           # Specify the fully qualified container image name. For example, "myregistry.azurecr.io/nginx:latest" or "python:3.7.2-alpine/"
@@ -98,6 +104,6 @@ jobs:
           # The container image registry login server
           registry-login-server: ${{ secrets.ACR_LOGIN_SERVER}}
           # Username to log in Container Image Registry Server
-          registry-username: ${{ steps.acrSecrets.outputs.ACRUSER }}
+          registry-username: ${{ needs.setup.outputs.ACRUSER }}
           # Password to log in Container Image Registry Server
-          registry-password: ${{ steps.acrSecrets.outputs.ACRPW }}
+          registry-password: ${{ needs.setup.outputs.ACRPW }}
