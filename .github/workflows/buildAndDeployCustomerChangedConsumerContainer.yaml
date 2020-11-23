@@ -36,7 +36,7 @@ jobs:
         uses: Azure/get-keyvault-secrets@v1
         with:
           keyvault: ${{ env.KEY_VAULT_NAME }}
-          secrets: 'EVENTHUBSTORAGEACCOUNTNAMEACCESSKEY, eventhub-customer-adress-changed-sas-connectionstring'
+          secrets: 'EVENTHUBSTORAGEACCOUNTACCESSKEY, eventhub-customer-adress-changed-sas-connectionstring'
         id: eventHubSecrets
 
       - name: Get Key Vault Secrets (Container Registry)
@@ -84,7 +84,7 @@ jobs:
             SPRING_PROFILES_ACTIVE=prod
             EVENTHUBCONNECTIONSTRING=${{ steps.eventHubSecrets.outputs.eventhub-customer-adress-changed-sas-connectionstring }}
             EVENTHUBSTORAGEACCOUNTNAME=tcedaiacstorageprod
-            EVENTHUBSTORAGEACCOUNTACCESSKEY=${{ steps.eventHubSecrets.outputs.EVENTHUBSTORAGEACCOUNTNAMEACCESSKEY }}
+            EVENTHUBSTORAGEACCOUNTACCESSKEY=${{ steps.eventHubSecrets.outputs.EVENTHUBSTORAGEACCOUNTACCESSKEY }}
             EVENTHUBNAME=customerchanged
             EVENTHUBCONSUMERGROUP=$Default
           # Specify the fully qualified container image name. For example, "myregistry.azurecr.io/nginx:latest" or "python:3.7.2-alpine/"
