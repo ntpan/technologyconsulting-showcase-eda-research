@@ -2,23 +2,27 @@ name: Deploy Container CustomerChangedConsumer
 
 on:
   workflow_dispatch
-
-env:
-  KEY_VAULT_NAME: tcedaiacvaultprod
-  TC_KEY_VAULT_NAME: tc-showcase-common-vault
-  EVENT_HUB_NAME: customerchanged
-  EVENT_HUB_STORAGEACCOUNT_NAME: tcedaiacstorageprod
-  EVENT_HUB_CONSUMER_GROUP: $default
-  CONTAINER_REGISTRY: 'nttcshowcase.azurecr.io'
-  IMAGE_REPOSITORY: 'edaiaccustomerchanged'
-  CONTAINER_IMAGE_TAG: 'latest'
-  DOCKERFILE_PATH: .
-  APP_NAME: tc-eda-iac-prod-customer-consumer
-  LOCATION: 'westeurope'
   
 jobs:
+  prepareEnvironmentVariables: 
+    name: prepare environment variables
+    runs-on: ubuntu-latest
+    steps: 
+      - run: |
+          echo "KEY_VAULT_NAME=tcedaiacvaultprod" >> $GITHUB_ENV
+          echo "TC_KEY_VAULT_NAME=tc-showcase-common-vault" >> $GITHUB_ENV
+          echo "EVENT_HUB_NAME=customerchanged" >> $GITHUB_ENV
+          echo "EVENT_HUB_STORAGEACCOUNT_NAME=tcedaiacstorageprod" >> $GITHUB_ENV
+          echo "EVENT_HUB_CONSUMER_GROUP=$default" >> $GITHUB_ENV
+          echo "CONTAINER_REGISTRY=nttcshowcase.azurecr.io" >> $GITHUB_ENV
+          echo "IMAGE_REPOSITORY=edaiaccustomerchanged" >> $GITHUB_ENV
+          echo "CONTAINER_IMAGE_TAG=latest" >> $GITHUB_ENV
+          echo "DOCKERFILE_PATH=./containers/customerConsumer/" >> $GITHUB_ENV
+          echo "APP_NAME=tc-eda-iac-prod-customer-consumer" >> $GITHUB_ENV
+          echo "LOCATION=westeurope" >> $GITHUB_ENV
   setup: 
     name: Setup job
+    needs: prepareEnvironmentVariables
     runs-on: ubuntu-latest
     steps: 
       - name: 'Login using Azure Service Principal'
@@ -35,20 +39,20 @@ jobs:
       - name: Get Key Vault Secrets (Event Hub)
         uses: Azure/get-keyvault-secrets@v1.0
         with:
-          keyvault: ${{ env.KEY_VAULT_NAME }}
+          keyvault: $KEY_VAULT_NAME
           secrets: 'EVENTHUBSTORAGEACCOUNTNAMEACCESSKEY, eventhub-customer-adress-changed-sas-connectionstring'
         id: eventHubSecrets
 
       - name: Get Key Vault Secrets (Container Registry)
         uses: Azure/get-keyvault-secrets@v1.0
         with: 
-          keyvault: ${{ env.TC_KEY_VAULT_NAME }}
+          keyvault: $TC_KEY_VAULT_NAME
           secrets: 'ACRUSER, ACRPW'
         id: acrSecrets
 
   build: 
     name: Build Job
-    needs: setup
+    needs: [setup,prepareEnvironmentVariables]
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout Code 
@@ -62,19 +66,19 @@ jobs:
           password: ${{ steps.acrSecrets.outputs.ACRPW }}
 
       - run: |
-          docker build . -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
+          docker build . -t ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_REPOSITORY:${{ github.sha }}
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_REPOSITORY:${{ github.sha }}
 
   deploy: 
     name: Deploy job
-    needs: [setup, build]
+    needs: [setup, build, prepareEnvironmentVariables]
     runs-on: ubuntu-latest
     steps: 
       - name: Deploy to Azure Container Instances
         uses: Azure/aci-deploy@v1
         with:
           # Name of the Resource Group in which the Container Instance will be created
-          resource-group: ${{ env.RESOURCE_GROUP }}
+          resource-group: $RESOURCE_GROUP
           # The command line to run when the container is started, e.g. "/bin/bash -c myscript.sh"
           # command-line: # optional, default is 
           # The DNS Name Label for Container with Public IP
@@ -88,11 +92,11 @@ jobs:
             EVENTHUBNAME=customerchanged
             EVENTHUBCONSUMERGROUP=$Default
           # Specify the fully qualified container image name. For example, "myregistry.azurecr.io/nginx:latest" or "python:3.7.2-alpine/"
-          image: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
+          image: ${{ secrets.ACR_LOGIN_SERVER }}/$IMAGE_REPOSITORY:${{ github.sha }}
           # Location where the Container will be deployed
-          location: ${{ env.LOCATION }}
+          location: $LOCATION
           # Name of the Container Group Instance
-          name: ${{ env.APP_NAME }}
+          name: $APP_NAME
           # The Ports to Open on the Container. Space seperate the ports for multiple values
           ports: 80 443
           # The container image registry login server
