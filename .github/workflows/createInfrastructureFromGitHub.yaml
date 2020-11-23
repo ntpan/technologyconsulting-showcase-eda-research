@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tfAction:
-        description: Terraform Action [Plan, Apply, Destroy]
+        description: Terraform Action (in lower case) [plan, apply, destroy]
         required: true
         default: plan
 #  push:
