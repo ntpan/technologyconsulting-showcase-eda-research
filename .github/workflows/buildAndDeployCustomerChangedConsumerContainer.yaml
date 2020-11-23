@@ -35,7 +35,7 @@ jobs:
       - name: Get Key Vault Secrets (Event Hub)
         uses: Azure/get-keyvault-secrets@v1.0
         with:
-          keyvault: ${{ env.KEYVAULTNAME }}
+          keyvault: ${{ env.KEY_VAULT_NAME }}
           secrets: 'EVENTHUBSTORAGEACCOUNTNAMEACCESSKEY, eventhub-customer-adress-changed-sas-connectionstring'
         id: eventHubSecrets
 
@@ -58,8 +58,8 @@ jobs:
         uses: azure/docker-login@v1
         with: 
           login-server: ${{ secrets.ACR_LOGIN_SERVER }}
-          username: ${{ acrSecrets.ACRUSER }}
-          password: ${{ acrSecrets.ACRPW }}
+          username: ${{ steps.acrSecrets.outputs.ACRUSER }}
+          password: ${{ steps.acrSecrets.outputs.ACRPW }}
 
       - run: |
           docker build . -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
@@ -82,9 +82,9 @@ jobs:
           # List of environment variables for the container. Space-seperated in "key=value" format
           environment-variables: |
             SPRING_PROFILES_ACTIVE=prod
-            EVENTHUBCONNECTIONSTRING=${{ eventHubSecrets.eventhub-customer-adress-changed-sas-connectionstring }}
+            EVENTHUBCONNECTIONSTRING=${{ steps.eventHubSecrets.outputs.eventhub-customer-adress-changed-sas-connectionstring }}
             EVENTHUBSTORAGEACCOUNTNAME=tcedaiacstorageprod
-            EVENTHUBSTORAGEACCOUNTACCESSKEY=${{ eventHubSecrets.EVENTHUBSTORAGEACCOUNTNAMEACCESSKEY }}
+            EVENTHUBSTORAGEACCOUNTACCESSKEY=${{ steps.eventHubSecrets.outputs.EVENTHUBSTORAGEACCOUNTNAMEACCESSKEY }}
             EVENTHUBNAME=customerchanged
             EVENTHUBCONSUMERGROUP=$Default
           # Specify the fully qualified container image name. For example, "myregistry.azurecr.io/nginx:latest" or "python:3.7.2-alpine/"
@@ -98,6 +98,6 @@ jobs:
           # The container image registry login server
           registry-login-server: ${{ secrets.ACR_LOGIN_SERVER}}
           # Username to log in Container Image Registry Server
-          registry-username: ${{ acrSecrets.ACRUSER }}
+          registry-username: ${{ steps.acrSecrets.outputs.ACRUSER }}
           # Password to log in Container Image Registry Server
-          registry-password: ${{ acrSecrets.ACRPW }}
+          registry-password: ${{ steps.acrSecrets.outputs.ACRPW }}
