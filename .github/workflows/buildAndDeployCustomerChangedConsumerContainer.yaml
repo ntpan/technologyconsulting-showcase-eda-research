@@ -17,23 +17,8 @@ env:
   LOCATION: 'westeurope'
   
 jobs:
-  setup: 
-    name: Setup job
-    runs-on: ubuntu-latest
-    steps: 
-      - name: 'Login using Azure Service Principal'
-        uses: Azure/login@v1
-        with: 
-          creds: >-
-            {
-              "clientId":"${{ secrets.ARM_CLIENT_ID }}",
-              "clientSecret" : "${{ secrets.ARM_CLIENT_SECRET }}",
-              "subscriptionId": "${{ secrets.ARM_SUBSCRIPTION_ID }}",
-              "tenantId":"${{ secrets.ARM_TENANT_ID }}" 
-            }
   build: 
     name: Build Job
-    needs: setup
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout Code 
@@ -52,9 +37,19 @@ jobs:
 
   deploy: 
     name: Deploy job
-    needs: [setup, build]
+    needs: build
     runs-on: ubuntu-latest
     steps: 
+      - name: 'Login using Azure Service Principal'
+        uses: Azure/login@v1
+        with: 
+          creds: >-
+            {
+              "clientId":"${{ secrets.ARM_CLIENT_ID }}",
+              "clientSecret" : "${{ secrets.ARM_CLIENT_SECRET }}",
+              "subscriptionId": "${{ secrets.ARM_SUBSCRIPTION_ID }}",
+              "tenantId":"${{ secrets.ARM_TENANT_ID }}" 
+            }
       - name: Get Key Vault Secrets (Event Hub)
         uses: Azure/get-keyvault-secrets@v1
         with:
