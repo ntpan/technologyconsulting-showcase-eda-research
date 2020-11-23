@@ -12,7 +12,7 @@ env:
   CONTAINER_REGISTRY: 'nttcshowcase.azurecr.io'
   IMAGE_REPOSITORY: 'edaiaccustomerchanged'
   CONTAINER_IMAGE_TAG: 'latest'
-  DOCKERFILE_PATH: ./container/customerConsumer/
+  DOCKERFILE_PATH: ./containers/customerConsumer/
   APP_NAME: tc-eda-iac-prod-customer-consumer
   LOCATION: 'westeurope'
   
@@ -47,7 +47,7 @@ jobs:
           password: ${{ secrets.ACR_PW }}
 
       - run: |
-          docker build . -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
+          docker build ${{ env.DOCKERFILE_PATH }} -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
 
   deploy: 
