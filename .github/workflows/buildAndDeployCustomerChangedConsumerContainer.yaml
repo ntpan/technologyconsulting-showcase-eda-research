@@ -5,15 +5,17 @@ on:
 
 env:
   KEY_VAULT_NAME: tcedaiacvaultprod
+  TC_KEY_VAULT_NAME: tc-showcase-common-vault
   EVENT_HUB_NAME: customerchanged
   EVENT_HUB_STORAGEACCOUNT_NAME: tcedaiacstorageprod
   EVENT_HUB_CONSUMER_GROUP: $default
   CONTAINER_REGISTRY: 'nttcshowcase.azurecr.io'
-  IMAGE_REPOSITORY: 'customerchanged'
+  IMAGE_REPOSITORY: 'edaiaccustomerchanged'
   CONTAINER_IMAGE_TAG: 'latest'
   DOCKERFILE_PATH: .
   APP_NAME: tc-eda-iac-prod-customer-consumer
-
+  LOCATION: 'westeurope'
+  
 jobs:
   setup: 
     name: Setup job
@@ -30,62 +32,72 @@ jobs:
               "tenantId":"${{ secrets.ARM_TENANT_ID }}" 
             }
 
-      - name: Get Keyvault Secrets 
+      - name: Get Key Vault Secrets (Event Hub)
         uses: Azure/get-keyvault-secrets@v1.0
         with:
           keyvault: ${{ env.KEYVAULTNAME }}
           secrets: 'EVENTHUBSTORAGEACCOUNTNAMEACCESSKEY, eventhub-customer-adress-changed-sas-connectionstring'
-        id: myGetSecretAction
+        id: eventHubSecrets
 
-      - name: Checkout Code 
-        uses: actions/checkout@v2
+      - name: Get Key Vault Secrets (Container Registry)
+        uses: Azure/get-keyvault-secrets@v1.0
+        with: 
+          keyvault: ${{ env.TC_KEY_VAULT_NAME }}
+          secrets: 'ACRUSER, ACRPW'
+        id: acrSecrets
+
   build: 
     name: Build Job
     needs: setup
     runs-on: ubuntu-latest
     steps: 
-      - name: test
+      - name: Checkout Code 
+        uses: actions/checkout@v2
+      
+      - name: Build and push image
+        uses: azure/docker-login@v1
+        with: 
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ acrSecrets.ACRUSER }}
+          password: ${{ acrSecrets.ACRPW }}
+
+      - run: |
+          docker build . -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
+
   deploy: 
     name: Deploy job
     needs: [setup, build]
     runs-on: ubuntu-latest
     steps: 
-      - name: Deploy to Azure Container Instancess
+      - name: Deploy to Azure Container Instances
         uses: Azure/aci-deploy@v1
         with:
           # Name of the Resource Group in which the Container Instance will be created
           resource-group: ${{ env.RESOURCE_GROUP }}
           # The command line to run when the container is started, e.g. "/bin/bash -c myscript.sh"
-          command-line: # optional, default is 
+          # command-line: # optional, default is 
           # The DNS Name Label for Container with Public IP
-          dns-name-label: 
+          dns-name-label: ${{ secrets.RESOURCE_GROUP }}${{ github.run_number }}
           # List of environment variables for the container. Space-seperated in "key=value" format
-          environment-variables: # optional, default is 
-          # The target directory path in the git repository. Must not contain ".."
-          gitrepo-dir: # optional, default is 
-          # The path within the container where the git repo volume should be mounted. Must not contain ":"
-          gitrepo-mount-path: # optional, default is 
-          # The commit hash for the specified revision
-          gitrepo-revision: # optional, default is 
-          # The URL of a git repository to be mounted as a volume
-          gitrepo-url: # optional, default is 
+          environment-variables: |
+            SPRING_PROFILES_ACTIVE=prod
+            EVENTHUBCONNECTIONSTRING=${{ eventHubSecrets.eventhub-customer-adress-changed-sas-connectionstring }}
+            EVENTHUBSTORAGEACCOUNTNAME=tcedaiacstorageprod
+            EVENTHUBSTORAGEACCOUNTACCESSKEY=${{ eventHubSecrets.EVENTHUBSTORAGEACCOUNTNAMEACCESSKEY }}
+            EVENTHUBNAME=customerchanged
+            EVENTHUBCONSUMERGROUP=$Default
           # Specify the fully qualified container image name. For example, "myregistry.azurecr.io/nginx:latest" or "python:3.7.2-alpine/"
-          image: 
+          image: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
           # Location where the Container will be deployed
-          location: 
+          location: ${{ env.LOCATION }}
           # Name of the Container Group Instance
-          name: 
-          # The OS type of the Containers. Accepted Values are  { Linux, Windows }
-          os-type: # optional, default is Linux
+          name: ${{ env.APP_NAME }}
           # The Ports to Open on the Container. Space seperate the ports for multiple values
-          ports: # optional, default is 80
-          # The Network protocol to use. Accepted Values are { TCP, UDP }
-          protocol: # optional, default is TCP
+          ports: 80 443
           # The container image registry login server
-          registry-login-server: # optional, default is 
+          registry-login-server: ${{ secrets.ACR_LOGIN_SERVER}}
           # Username to log in Container Image Registry Server
-          registry-username: # optional, default is 
+          registry-username: ${{ acrSecrets.ACRUSER }}
           # Password to log in Container Image Registry Server
-          registry-password: # optional, default is 
-          # List of secure environment variables for the container. Space seperated values in "key=value" format
-          secure-environment-variables: # optional, default is  
+          registry-password: ${{ acrSecrets.ACRPW }}
