@@ -1,4 +1,4 @@
-name: Deploy customer changed event function
+name: Deploy customer changed consumer function
 
 on:
   [workflow_dispatch]
@@ -11,9 +11,9 @@ on:
 #
 # 2. Change these variables for your configuration:
 env:
-  AZURE_FUNCTIONAPP_NAME: tc-eda-iac-prod-function-customer-producer  # set this to your application's name
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './functions/CustomerChanged'    # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '3.1.301'              # set this to the dotnet version to use
+  AZURE_FUNCTIONAPP_NAME: tc-eda-iac-prod-function-customer-consumer  # set this to your application's name
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './functions/CustomerChangedConsumer'    # set this to the path to your web app project, defaults to the repository root
+  PYTHON_VERSION: '3.7'              # set this to the python version to use
 
 jobs:
   build-and-deploy:
