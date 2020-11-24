@@ -57,7 +57,7 @@ jobs:
           secrets: 'EVENTHUBSTORAGEACCOUNTACCESSKEY, EVENTHUBCUSTOMERCHANGEDSASCONNECTIONSTRING'
         id: eventHubSecrets
       - name: Deploy to Azure Container Instances
-        uses: Azure/aci-deploy@v1
+        uses: Azure/aci-deploy@v1.1
         with:
           # Name of the Resource Group in which the Container Instance will be created
           resource-group: ${{ env.RESOURCE_GROUP }}
@@ -82,7 +82,7 @@ jobs:
           # The Ports to Open on the Container. Space seperate the ports for multiple values
           ports: 80 443
           # The container image registry login server
-          registry-login-server: ${{ secrets.ACR_LOGIN_SERVER}}
+          registry-login-server: ${{ secrets.ACR_LOGIN_SERVER }}
           # Username to log in Container Image Registry Server
           registry-username: ${{ secrets.ACR_USER }}
           # Password to log in Container Image Registry Server
