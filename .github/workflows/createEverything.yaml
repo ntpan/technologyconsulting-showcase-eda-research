@@ -1,0 +1,79 @@
+name: Build Everything
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployProducerFunction:
+        description: yes/no
+        required: true
+        default: "no"
+      deployConsumerFunction:
+        description: yes/no
+        required: true
+        default: "no"
+      deployConsumerContainer:
+        description: yes/no
+        required: true
+        default: "no"
+#  push:
+#    branches: [ main ]
+
+jobs:
+  create_infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Run Terraform
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          STATE_BLOBACCESSKEY: ${{ secrets.STATE_BLOBACCESSKEY }}
+          TF_VAR_storage_account_name: 'tcshowcasecommonstorage'
+          TF_VAR_environment: 'prod'
+          TF_ACTION: 'apply'
+        run: ./createInfrastructure.sh
+
+
+  deploy_producer_function:
+    if: ${{ github.event.inputs.deployProducerFunction == 'yes' }}
+    needs: create_infrastructure
+    runs-on: ubuntu-latest
+    env: 
+      AZURE_FUNCTIONAPP_NAME: tc-eda-iac-prod-function-customer-producer  # set this to your application's name
+      AZURE_FUNCTIONAPP_PACKAGE_PATH: './functions/CustomerChanged'    # set this to the path to your web app project, defaults to the repository root
+      DOTNET_VERSION: '3.1.301'              # set this to the dotnet version to use
+    steps: 
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@master
+
+      - name: Setup DotNet ${{ jobs.deploy_producer_function.env.DOTNET_VERSION }} Environment
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ jobs.deploy_producer_function.env.DOTNET_VERSION }}
+
+      - name: 'Resolve Project Dependencies Using Dotnet'
+        shell: bash
+        run: |
+          pushd './${{ jobs.deploy_producer_function.env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          dotnet build --configuration Release --output ./output
+          popd
+      - name: 'Login using Azure Service Principal'
+        uses: Azure/login@v1
+        with: 
+          creds: >-
+            {
+              "clientId":"${{ secrets.ARM_CLIENT_ID }}",
+              "clientSecret" : "${{ secrets.ARM_CLIENT_SECRET }}",
+              "subscriptionId": "${{ secrets.ARM_SUBSCRIPTION_ID }}",
+              "tenantId":"${{ secrets.ARM_TENANT_ID }}" 
+            }
+      - name: 'Run Azure Functions Action'
+        uses: Azure/functions-action@v1
+        id: fa
+        with:
+          app-name: ${{ jobs.deploy_producer_function.env.AZURE_FUNCTIONAPP_NAME }}
+          package: '${{ jobs.deploy_producer_function.env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
