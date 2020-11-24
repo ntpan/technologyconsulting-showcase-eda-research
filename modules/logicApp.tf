@@ -17,25 +17,23 @@ resource "azurerm_logic_app_action_custom" "logic_app_event_producer_action_1" {
     logic_app_id = azurerm_logic_app_workflow.logic_app_event_producer.id
     body = <<BODY
     {
-        "CustomerChanged": {
-            "inputs": {
-                "body": {
-                    "Address": {
-                        "City": "Teststadt",
-                        "Street": "Teststraße",
-                        "Zip": "Testzip"
-                    },
-                    "Id": "@rand(1,1000)",
-                    "Name": " Test"
+        "inputs": {
+            "body": {
+                "Address": {
+                    "City": "Teststadt",
+                    "Street": "Teststraße",
+                    "Zip": "Testzip"
                 },
-                "function": {
-                    "id": "${azurerm_function_app.customer_function_producer.id}/customerChanged"
-                },
-                "method": "PUT"
+                "Id": "@rand(1,1000)",
+                "Name": " Test"
             },
-            "runAfter": {},
-            "type": "Function"
-        }
-    }
+            "function": {
+                "id": "${azurerm_function_app.customer_function_producer.id}/functions/customerChanged"
+            },
+            "method": "PUT"
+        },
+        "runAfter": {},
+        "type": "Function"
+    }    
     BODY
 }
