@@ -9,13 +9,14 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>de.novatec.technologyconsulting.showcase.eda.iac</groupId>
-	<artifactId>customerConsumer</artifactId>
+	<artifactId>customer-consumer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>customerConsumer</name>
+	<name>customer-consumer</name>
 	<description>IaC for EDA Research - Customer Consumer Container</description>
 
 	<properties>
-		<java.version>15</java.version>
+		<maven.compiler.target>15</maven.compiler.target>
+		<maven.compiler.source>15</maven.compiler.source>
 	</properties>
 
 	<dependencies>
@@ -29,16 +30,19 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>com.microsoft.azure</groupId>
 			<artifactId>spring-cloud-azure-eventhubs-stream-binder</artifactId>
 			<version>1.2.8</version>
 		</dependency>
+
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
 			<version>2.3.1</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.glassfish.jaxb</groupId>
 			<artifactId>jaxb-runtime</artifactId>
@@ -46,22 +50,4 @@
 			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>14</source>
-					<target>14</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
 </project>

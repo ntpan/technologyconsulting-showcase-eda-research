@@ -1,4 +1,4 @@
-package de.novatec.technologyconsulting.showcase.eda.iac.customerConsumer;
+package de.novatec.customerconsumer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
