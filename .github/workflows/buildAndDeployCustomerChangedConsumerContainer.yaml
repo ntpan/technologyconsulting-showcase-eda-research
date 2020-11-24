@@ -12,7 +12,7 @@ env:
   CONTAINER_REGISTRY: 'nttcshowcase.azurecr.io'
   IMAGE_REPOSITORY: 'edaiaccustomerchanged'
   CONTAINER_IMAGE_TAG: 'latest'
-  DOCKERFILE_PATH: ./containers/customerConsumer/
+  DOCKERFILE_PATH: ./containers/customer-consumer/
   LOCATION: 'westeurope'
   RESOURCE_GROUP: 'tc-eda-iac-prod'
   APP_NAME: '-customer-consumer-container'
