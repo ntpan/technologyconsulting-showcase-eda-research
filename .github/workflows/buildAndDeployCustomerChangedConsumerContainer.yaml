@@ -16,6 +16,7 @@ env:
   LOCATION: 'westeurope'
   RESOURCE_GROUP: 'tc-eda-iac-prod'
   APP_NAME: '-customer-consumer-container'
+  SERVER_PORT: '80'
   
 jobs:
   build: 
@@ -74,6 +75,7 @@ jobs:
             EVENTHUBSTORAGEACCOUNTACCESSKEY=${{ steps.eventHubSecrets.outputs.EVENTHUBSTORAGEACCOUNTACCESSKEY }}
             EVENTHUBNAME=${{ env.EVENT_HUB_NAME }}
             EVENTHUBCONSUMERGROUP=${{ env.EVENT_HUB_CONSUMER_GROUP }}
+            SERVERPORT=${{ env.SERVER_PORT }}
           # Specify the fully qualified container image name. For example, "myregistry.azurecr.io/nginx:latest" or "python:3.7.2-alpine/"
           image: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
           # Location where the Container will be deployed
