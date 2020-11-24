@@ -13,8 +13,9 @@ env:
   IMAGE_REPOSITORY: 'edaiaccustomerchanged'
   CONTAINER_IMAGE_TAG: 'latest'
   DOCKERFILE_PATH: ./containers/customerConsumer/
-  APP_NAME: tc-eda-iac-prod-customer-consumer
   LOCATION: 'westeurope'
+  RESOURCE_GROUP: 'tc-eda-iac-prod'
+  APP_NAME: '-customer-consumer-container'
   
 jobs:
   build: 
@@ -64,21 +65,21 @@ jobs:
           # The command line to run when the container is started, e.g. "/bin/bash -c myscript.sh"
           # command-line: # optional, default is 
           # The DNS Name Label for Container with Public IP
-          dns-name-label: ${{ secrets.RESOURCE_GROUP }}${{ github.run_number }}
+          dns-name-label: ${{ env.RESOURCE_GROUP }}${{ env.APP_NAME }}
           # List of environment variables for the container. Space-seperated in "key=value" format
           environment-variables: |
             SPRING_PROFILES_ACTIVE=prod
             EVENTHUBCONNECTIONSTRING=${{ steps.eventHubSecrets.outputs.EVENTHUBCUSTOMERCHANGEDSASCONNECTIONSTRING }}
-            EVENTHUBSTORAGEACCOUNTNAME=tcedaiacstorageprod
+            EVENTHUBSTORAGEACCOUNTNAME=${{ env.EVENT_HUB_STORAGEACCOUNT_NAME }}
             EVENTHUBSTORAGEACCOUNTACCESSKEY=${{ steps.eventHubSecrets.outputs.EVENTHUBSTORAGEACCOUNTACCESSKEY }}
-            EVENTHUBNAME=customerchanged
-            EVENTHUBCONSUMERGROUP=$Default
+            EVENTHUBNAME=${{ env.EVENT_HUB_NAME }}
+            EVENTHUBCONSUMERGROUP=${{ env.EVENT_HUB_CONSUMER_GROUP }}
           # Specify the fully qualified container image name. For example, "myregistry.azurecr.io/nginx:latest" or "python:3.7.2-alpine/"
           image: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
           # Location where the Container will be deployed
           location: ${{ env.LOCATION }}
           # Name of the Container Group Instance
-          name: ${{ env.APP_NAME }}
+          name: ${{ env.RESOURCE_GROUP }}${{ env.APP_NAME }}
           # The Ports to Open on the Container. Space seperate the ports for multiple values
           ports: 80 443
           # The container image registry login server
