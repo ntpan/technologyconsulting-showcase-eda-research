@@ -10,7 +10,7 @@ resource "azurerm_eventhub" "eventhub_customer_changed" {
     name = "customerchanged"
     namespace_name = azurerm_eventhub_namespace.customer_eventhub_namespace.name
     resource_group_name = azurerm_resource_group.resourceGroup.name
-    partition_count = 2 
+    partition_count = 1 
     message_retention = 1
 
     capture_description {
