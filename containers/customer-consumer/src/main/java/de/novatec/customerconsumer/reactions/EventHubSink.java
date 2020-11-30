@@ -9,6 +9,7 @@ import de.novatec.customerconsumer.repository.CustomerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import reactor.core.Disposable;
 
@@ -19,6 +20,12 @@ import java.io.IOException;
 public class EventHubSink {
   private static final Logger LOGGER = LoggerFactory.getLogger(EventHubSink.class);
 
+  @Value("${azure.eventHub.connectionString}")
+  private String eventHubConnectionString;
+
+  @Value("${azure.eventHub.consumerGroup}")
+  private String eventHubConsumerGroup;
+
   private final CustomerRepository customers;
 
   public EventHubSink(CustomerRepository customers) {
@@ -28,16 +35,16 @@ public class EventHubSink {
   @PostConstruct
   public void handleMessage() {
     EventHubClientBuilder builder = new EventHubClientBuilder();
-    builder.connectionString("Endpoint=sb://tc-eda-iac-prod-customer-eventhub.servicebus.windows.net/;SharedAccessKeyName=pubsub;SharedAccessKey=mQdJtgGxURm4kXqKA6wescg+QDt1KYaHswGB3E9OCsQ=;EntityPath=customerchanged");
-    builder.consumerGroup("$Default");
+    builder.connectionString(eventHubConnectionString);
+    builder.consumerGroup(eventHubConsumerGroup);
     EventHubConsumerAsyncClient client = builder.buildAsyncConsumerClient();
 
-    Disposable sub = client.receive(true)
+    // receive(startReadingAtEarliestEvent=true)
+    client.receive(true)
             .subscribe(partitionEvent -> {
-              PartitionContext pContext = partitionEvent.getPartitionContext();
               EventData data = partitionEvent.getData();
 
-              LOGGER.info("#### New message received: '{}'", data.getBodyAsString());
+              LOGGER.info("New message received: '{}'", data.getBodyAsString());
               ObjectMapper mapper = new ObjectMapper();
               try {
                 //Because the event has capital attribute names, and java does not seem to like that
@@ -48,7 +55,7 @@ public class EventHubSink {
               } catch (IOException e) {
                 e.printStackTrace();
               }
-              System.out.printf("Contents of event as string: '%s'%n", data.getBodyAsString());
-            }, error -> System.err.print(error.toString()));
+              LOGGER.info("Contents of event as string: '{}'", data.getBodyAsString());
+            }, error -> LOGGER.warn(error.toString()));
   }
 }

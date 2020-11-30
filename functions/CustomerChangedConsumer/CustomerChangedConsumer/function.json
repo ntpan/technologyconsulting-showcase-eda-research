@@ -6,7 +6,7 @@
       "name": "events",
       "direction": "in",
       "eventHubName": "customerchanged",
-      "connection": "tcedaiacprodcustomereventhub_pubsub_EVENTHUB",
+      "connection": "CONNECTION_STRING",
       "cardinality": "many",
       "consumerGroup": "$Default",
       "dataType": "binary"
