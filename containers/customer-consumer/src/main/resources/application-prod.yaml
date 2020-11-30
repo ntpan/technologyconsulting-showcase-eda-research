@@ -6,6 +6,10 @@ azure:
 server:
   port: ${SERVERPORT}
 
+spring:
+  profiles:
+    active: prod
+
 management:
   endpoints:
     web:
