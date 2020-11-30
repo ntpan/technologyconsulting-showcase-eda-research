@@ -1,10 +1,10 @@
 azure:
   eventHub:
-    connectionString: "Endpoint=sb://tc-eda-iac-prod-customer-eventhub.servicebus.windows.net/;SharedAccessKeyName=pubsub;SharedAccessKey=dKYC5TYAIMEa9kDGsSwPgmFgyvkoWYilaKXlUGWqOy8=;EntityPath=customerchanged"
+    connectionString: ${EVENTHUBCONNECTIONSTRING}
     consumerGroup: "$Default"
 
 server:
-  port: 9080
+  port: ${SERVERPORT}
 
 management:
   endpoints:
