@@ -51,7 +51,9 @@ public class EventHubSink {
                 mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
                 JsonNode customerJson = mapper.readTree(data.getBodyAsString()).get("Value");
                 Customer customer = mapper.readValue(customerJson.toString(), Customer.class);
-                customers.update(customer);
+
+                if(customer != null)
+                    customers.update(customer);
               } catch (IOException e) {
                 e.printStackTrace();
               }
