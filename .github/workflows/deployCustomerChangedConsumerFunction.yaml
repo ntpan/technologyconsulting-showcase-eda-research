@@ -1,4 +1,4 @@
-name: Deploy customer changed event function
+name: Deploy customer changed consumer function
 
 on:
   [workflow_dispatch]
