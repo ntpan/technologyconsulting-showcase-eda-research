@@ -1,0 +1,32 @@
+name: Build infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      tfAction:
+        description: Terraform Action (in lower case) [plan, apply, destroy]
+        required: true
+        default: plan
+#  push:
+#    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Run Terraform
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          STATE_BLOBACCESSKEY: ${{ secrets.STATE_BLOBACCESSKEY }}
+          TF_VAR_storage_account_name: 'tcshowcasecommonstorage'
+          TF_VAR_environment: 'prod'
+          TF_ACTION: ${{ github.event.inputs.tfAction }}
+        run: ./createInfrastructure.sh

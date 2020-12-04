@@ -1,0 +1,88 @@
+name: Deploy Container CustomerChangedConsumer
+
+on:
+  workflow_dispatch
+
+env:
+  KEY_VAULT_NAME: tcedaiacvaultprod
+  TC_KEY_VAULT_NAME: tc-showcase-common-vault
+  EVENT_HUB_NAME: customerchanged
+  EVENT_HUB_STORAGEACCOUNT_NAME: tcedaiacstorageprod
+  EVENT_HUB_CONSUMER_GROUP: $default
+  CONTAINER_REGISTRY: 'nttcshowcase.azurecr.io'
+  IMAGE_REPOSITORY: 'edaiaccustomerchanged'
+  CONTAINER_IMAGE_TAG: 'latest'
+  DOCKERFILE_PATH: ./containers/customer-consumer/
+  LOCATION: 'westeurope'
+  RESOURCE_GROUP: 'tc-eda-iac-prod'
+  APP_NAME: '-customer-consumer-container'
+  SERVER_PORT: '80'
+  
+jobs:
+  build: 
+    name: Build Job
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout Code 
+        uses: actions/checkout@v2
+      
+      - name: Build and push image
+        uses: azure/docker-login@v1
+        with: 
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USER }}
+          password: ${{ secrets.ACR_PW }}
+
+      - run: |
+          docker build ${{ env.DOCKERFILE_PATH }} -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
+
+  deploy: 
+    name: Deploy job
+    needs: build
+    runs-on: ubuntu-latest
+    steps: 
+      - name: 'Login using Azure Service Principal'
+        uses: Azure/login@v1
+        with: 
+          creds: >-
+            {
+              "clientId":"${{ secrets.ARM_CLIENT_ID }}",
+              "clientSecret" : "${{ secrets.ARM_CLIENT_SECRET }}",
+              "subscriptionId": "${{ secrets.ARM_SUBSCRIPTION_ID }}",
+              "tenantId":"${{ secrets.ARM_TENANT_ID }}" 
+            }
+      - name: Get Key Vault Secrets (Event Hub)
+        uses: Azure/get-keyvault-secrets@v1
+        with:
+          keyvault: ${{ env.KEY_VAULT_NAME }}
+          secrets: 'EVENTHUBSTORAGEACCOUNTACCESSKEY, EVENTHUBCUSTOMERCHANGEDSASCONNECTIONSTRING'
+        id: eventHubSecrets
+      - name: Deploy to Azure Container Instances
+        uses: Azure/aci-deploy@v1.1
+        with:
+          # Name of the Resource Group in which the Container Instance will be created
+          resource-group: ${{ env.RESOURCE_GROUP }}
+          # The command line to run when the container is started, e.g. "/bin/bash -c myscript.sh"
+          # command-line: # optional, default is 
+          # The DNS Name Label for Container with Public IP
+          dns-name-label: ${{ env.RESOURCE_GROUP }}${{ env.APP_NAME }}
+          # List of environment variables for the container. Space-seperated in "key=value" format
+          environment-variables: |
+            SPRING_PROFILES_ACTIVE=prod
+            EVENTHUBCONNECTIONSTRING=${{ steps.eventHubSecrets.outputs.EVENTHUBCUSTOMERCHANGEDSASCONNECTIONSTRING }}
+            SERVERPORT=${{ env.SERVER_PORT }}
+          # Specify the fully qualified container image name. For example, "myregistry.azurecr.io/nginx:latest" or "python:3.7.2-alpine/"
+          image: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
+          # Location where the Container will be deployed
+          location: ${{ env.LOCATION }}
+          # Name of the Container Group Instance
+          name: ${{ env.RESOURCE_GROUP }}${{ env.APP_NAME }}
+          # The Ports to Open on the Container. Space seperate the ports for multiple values
+          ports: 80 443
+          # The container image registry login server
+          registry-login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          # Username to log in Container Image Registry Server
+          registry-username: ${{ secrets.ACR_USER }}
+          # Password to log in Container Image Registry Server
+          registry-password: ${{ secrets.ACR_PW }}
