@@ -1,16 +1,7 @@
 resource "azurerm_logic_app_workflow" "logic_app_event_producer" {
-    depends_on=[azurerm_logic_app_integration_account.logic_app_event_producer_integration_account]
     name = "tc-eda-iac-${var.environment}-customer-changed-event-producer"
     location = azurerm_resource_group.resourceGroup.location
     resource_group_name = azurerm_resource_group.resourceGroup.name
-    logic_app_integration_account_id = azurerm_logic_app_integration_account.logic_app_event_producer_integration_account.id
-}
-
-resource "azurerm_logic_app_integration_account" "logic_app_event_producer_integration_account" {
-    name = "tc-eda-iac-${var.environment}-logic-app-integration-account"
-    resource_group_name = azurerm_resource_group.resourceGroup.name
-    location = azurerm_resource_group.resourceGroup.location
-    sku_name = "Free"
 }
 
 resource "azurerm_logic_app_trigger_recurrence" "logic_app_event_producer_trigger" {
