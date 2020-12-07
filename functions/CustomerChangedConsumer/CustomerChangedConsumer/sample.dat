@@ -1,9 +1,0 @@
-{
-    "id": 1,
-    "name": "Tobi B.",
-    "address": {
-        "street": "Teststraße 7",
-        "zip": "DE-70771",
-        "city": "Stuttgart"
-    }
-}

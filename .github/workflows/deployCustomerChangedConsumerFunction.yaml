@@ -13,7 +13,7 @@ on:
 env:
   AZURE_FUNCTIONAPP_NAME: tc-eda-iac-prod-function-customer-consumer  # set this to your application's name
   AZURE_FUNCTIONAPP_PACKAGE_PATH: './functions/CustomerChangedConsumer'    # set this to the path to your web app project, defaults to the repository root
-  PYTHON_VERSION: '3.7'              # set this to the python version to use
+  DOTNET_VERSION: '3.1.301'              # set this to the dotnet version to use
 
 jobs:
   build-and-deploy:
@@ -22,19 +22,17 @@ jobs:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@master
 
-    - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
-      uses: actions/setup-python@v1
+    - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
+      uses: actions/setup-dotnet@v1
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
+        dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: 'Resolve Project Dependencies Using Pip'
+    - name: 'Resolve Project Dependencies Using Dotnet'
       shell: bash
       run: |
         pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+        dotnet build --configuration Release --output ./output
         popd
-
     - name: 'Login using Azure Service Principal'
       uses: Azure/login@v1
       with: 
@@ -45,11 +43,10 @@ jobs:
             "subscriptionId": "${{ secrets.ARM_SUBSCRIPTION_ID }}",
             "tenantId":"${{ secrets.ARM_TENANT_ID }}" 
           }
-
     - name: 'Run Azure Functions Action'
       uses: Azure/functions-action@v1
       id: fa
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
 
