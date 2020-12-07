@@ -1,7 +1,12 @@
 name: Deploy Container CustomerChangedConsumer
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    tags:
+      descriptions: 'Manually trigger the deployment'
+  push:
+    branches: [ main ]
+    paths: [ 'containers/customer-consumer/**' ]
 
 env:
   KEY_VAULT_NAME: tcedaiacvaultprod

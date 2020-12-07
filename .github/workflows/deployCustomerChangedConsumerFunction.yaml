@@ -1,7 +1,12 @@
 name: Deploy customer changed consumer function
 
 on:
-  [workflow_dispatch]
+  workflow_dispatch:
+    tags:
+      descriptions: 'Manually trigger the deployment'
+  push:
+    branches: [ main ]
+    paths: [ 'functions/CustomerChangedConsumer/**' ]
 
 # CONFIGURATION
 # For help, go to https://github.com/Azure/Actions
