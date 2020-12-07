@@ -1,6 +1,6 @@
 azure:
   eventHub:
-    connectionString: "Endpoint=sb://tc-eda-iac-prod-customer-eventhub.servicebus.windows.net/;SharedAccessKeyName=pubsub;SharedAccessKey=dKYC5TYAIMEa9kDGsSwPgmFgyvkoWYilaKXlUGWqOy8=;EntityPath=customerchanged"
+    connectionString: "Endpoint=sb://tc-eda-iac-prod-customer-eventhub.servicebus.windows.net/;SharedAccessKeyName=pubsub;SharedAccessKey=nBbhXOl/J8CAQXEI2XVzB/TFnl1OSDZRIKOXCEMlM1Q=;EntityPath=customerchanged"
     consumerGroup: "$Default"
 
 server:
