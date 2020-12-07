@@ -34,6 +34,9 @@ resource "azurerm_logic_app_action_custom" "logic_app_event_producer_action_1" {
 
 resource "azurerm_logic_app_action_custom" "logic_app_event_producer_action_5" {
     name = "Until"
+    //Depends_on needed because terraform will throw the following error, basically deleting the logic app in the wrong order
+    //Error: Error removing Action "Initialize_variable" from Logic App "tc-eda-iac-dev-customer-changed-event-producer" (Resource Group "tc-eda-iac-dev"): Error removing Action "Initialize_variable" from Logic App Workspace "tc-eda-iac-dev-customer-changed-event-producer" (Resource Group "tc-eda-iac-dev"): logic.WorkflowsClient#CreateOrUpdate: Failure responding to request: StatusCode=400 -- Original Error: autorest/azure: Service returned an error. Status=400 Code="InvalidTemplate" Message="The template validation failed: 'The 'runAfter' property of template action 'Until' at line '1' and column '180' contains non-existent action: 'Initialize_variable'.'."
+    depends_on = [azurerm_logic_app_action_custom.logic_app_event_producer_action_1]
     logic_app_id = azurerm_logic_app_workflow.logic_app_event_producer.id
     body = <<BODY
     {
