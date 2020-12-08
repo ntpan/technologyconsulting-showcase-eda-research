@@ -41,3 +41,10 @@ resource "azurerm_key_vault_secret" "eventhub_customer_changed_sas_connectionstr
     value = azurerm_eventhub_authorization_rule.eventhub_customer_changed_shared_access_policy.primary_connection_string
     key_vault_id = azurerm_key_vault.key_vault.id
 }
+
+resource "azurerm_eventhub_consumer_group" "tc_eda_iac_event_sourcing_consumer" {
+  name                = "tc-eda-iac-event-sourcing-consumer"
+  namespace_name      = azurerm_eventhub_namespace.customer_eventhub_namespace.name
+  eventhub_name       = azurerm_eventhub.eventhub_customer_changed.name
+  resource_group_name = azurerm_resource_group.resourceGroup.name
+}

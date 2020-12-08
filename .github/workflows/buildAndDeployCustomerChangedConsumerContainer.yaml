@@ -20,6 +20,7 @@ env:
   RESOURCE_GROUP: 'tc-eda-iac-prod'
   APP_NAME: '-customer-consumer-container'
   SERVER_PORT: '80'
+  CONSUMER_GROUP: tc-eda-iac-event-sourcing-consumer
   
 jobs:
   build: 
@@ -75,6 +76,7 @@ jobs:
             SPRING_PROFILES_ACTIVE=prod
             EVENTHUBCONNECTIONSTRING=${{ steps.eventHubSecrets.outputs.EVENTHUBCUSTOMERCHANGEDSASCONNECTIONSTRING }}
             SERVERPORT=${{ env.SERVER_PORT }}
+            CONSUMER_GROUP=${{ env.CONSUMER_GROUP }}
           # Specify the fully qualified container image name. For example, "myregistry.azurecr.io/nginx:latest" or "python:3.7.2-alpine/"
           image: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
           # Location where the Container will be deployed

@@ -1,7 +1,7 @@
 azure:
   eventHub:
     connectionString: ${EVENTHUBCONNECTIONSTRING}
-    consumerGroup: "$Default"
+    consumerGroup: ${CONSUMER_GROUP}
 
 server:
   port: ${SERVERPORT}
