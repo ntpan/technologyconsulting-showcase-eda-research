@@ -2,14 +2,6 @@ name: Build infrastructure
 
 on:
   workflow_dispatch:
-    inputs:
-      tfAction:
-        description: Terraform Action (in lower case) [plan, apply, destroy]
-        required: true
-        default: plan
-      environmentName: 
-        description: Desired name of your environment
-        required: true
 
 jobs:
   build:
@@ -28,6 +20,6 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           STATE_BLOBACCESSKEY: ${{ secrets.STATE_BLOBACCESSKEY }}
           TF_VAR_storage_account_name: 'tcshowcasecommonstorage'
-          TF_VAR_environment: ${{ github.event.inputs.environmentName }}
-          TF_ACTION: ${{ github.event.inputs.tfAction }}
+          TF_VAR_environment: 'prod'
+          TF_ACTION: plan
         run: ./createInfrastructure.sh
